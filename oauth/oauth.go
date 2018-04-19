@@ -11,12 +11,12 @@ import (
 )
 
 const (
-	redirectOauthURL      = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s#wechat_redirect"
-	accessTokenURL        = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code"
-	refreshAccessTokenURL = "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=%s&grant_type=refresh_token&refresh_token=%s"
-	//userInfoURL           = "https://api.weixin.qq.com/sns/userinfo?access_token=%s&openid=%s&lang=zh_CN"
-	userInfoURL           = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN"
-	checkAccessTokenURL   = "https://api.weixin.qq.com/sns/auth?access_token=%s&openid=%s"
+	redirectOauthURL               = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s#wechat_redirect"
+	accessTokenURL                 = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code"
+	refreshAccessTokenURL          = "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=%s&grant_type=refresh_token&refresh_token=%s"
+	userInfoURL                    = "https://api.weixin.qq.com/sns/userinfo?access_token=%s&openid=%s&lang=zh_CN"
+	userInfoURLByGlobalAccessToken = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN"
+	checkAccessTokenURL            = "https://api.weixin.qq.com/sns/auth?access_token=%s&openid=%s"
 )
 
 //Oauth 保存用户授权信息
@@ -136,6 +136,25 @@ type UserInfo struct {
 //GetUserInfo 如果scope为 snsapi_userinfo 则可以通过此方法获取到用户基本信息
 func (oauth *Oauth) GetUserInfo(accessToken, openID string) (result UserInfo, err error) {
 	urlStr := fmt.Sprintf(userInfoURL, accessToken, openID)
+	var response []byte
+	response, err = util.HTTPGet(urlStr)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(response, &result)
+	if err != nil {
+		return
+	}
+	if result.ErrCode != 0 {
+		err = fmt.Errorf("GetUserInfo error : errcode=%v , errmsg=%v", result.ErrCode, result.ErrMsg)
+		return
+	}
+	return
+}
+
+//通过全局AccessToken 获取用户信息 参照 https://www.cnblogs.com/txw1958/p/weixin76-user-info.html
+func (oauth *Oauth) GetUserInfoByGlobalAccessToken(accessToken, openID string) (result UserInfo, err error) {
+	urlStr := fmt.Sprintf(userInfoURLByGlobalAccessToken, accessToken, openID)
 	var response []byte
 	response, err = util.HTTPGet(urlStr)
 	if err != nil {
