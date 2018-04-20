@@ -15,7 +15,7 @@ const (
 	accessTokenURL                 = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code"
 	refreshAccessTokenURL          = "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=%s&grant_type=refresh_token&refresh_token=%s"
 	userInfoURL                    = "https://api.weixin.qq.com/sns/userinfo?access_token=%s&openid=%s&lang=zh_CN"
-	userInfoURLByGlobalAccessToken = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN"
+	userInfoURLByAuthorizerAccessToken = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN"
 	checkAccessTokenURL            = "https://api.weixin.qq.com/sns/auth?access_token=%s&openid=%s"
 )
 
@@ -153,8 +153,8 @@ func (oauth *Oauth) GetUserInfo(accessToken, openID string) (result UserInfo, er
 }
 
 //通过全局AccessToken 获取用户信息 参照 https://www.cnblogs.com/txw1958/p/weixin76-user-info.html
-func (oauth *Oauth) GetUserInfoByGlobalAccessToken(accessToken, openID string) (result UserInfo, err error) {
-	urlStr := fmt.Sprintf(userInfoURLByGlobalAccessToken, accessToken, openID)
+func (oauth *Oauth) GetUserInfoByAuthorizerAccessToken(accessToken, openID string) (result UserInfo, err error) {
+	urlStr := fmt.Sprintf(userInfoURLByAuthorizerAccessToken, accessToken, openID)
 	var response []byte
 	response, err = util.HTTPGet(urlStr)
 	if err != nil {
